@@ -13,6 +13,7 @@ spec:
     metadata:
       annotations:
         checksum/config: {{ printf "%s%s" .Values.clearml .Values.agentk8sglue | sha256sum }}
+        checksum/configmap: {{ include (print $.Template.BasePath "/agentk8sglue-configmap.yaml") . | sha256sum }}
       labels:
         {{- include "agentk8sglue.selectorLabels" . | nindent 8 }}
     spec:
@@ -24,11 +25,13 @@ spec:
       - name: {{ include "agentk8sglue.referenceName" . }}-clearml-agent-registry-key
       {{- end }}
       {{- end }}
+      serviceAccountName: {{ include "agentk8sglue.serviceAccountName" . }}
+
       containers:
       - name: k8s-glue
         image: "{{ .Values.agentk8sglue.image.repository }}:{{ .Values.agentk8sglue.image.tag }}"
         imagePullPolicy: IfNotPresent
-        command: ["/bin/bash", "-c", "export PATH=$PATH:$HOME/bin; source /root/.bashrc && /root/entrypoint.sh"]
+        command: ["/bin/bash", "-c", "bash /scripts/startup.sh; export PATH=$PATH:$HOME/bin; source /root/.bashrc && /root/entrypoint.sh"]
         volumeMounts:
           - name: {{ include "agentk8sglue.referenceName" . }}-k8sagent-pod-template
             mountPath: /root/template
@@ -38,6 +41,9 @@ spec:
             subPath: clearml.conf
             readOnly: true
           {{- end }}
+        {{- if .Values.extraVolumeMounts }}
+          {{ toYaml .Values.extraVolumeMounts | nindent 10 }}
+        {{- end }}
         env:
           - name: CLEARML_API_HOST
             value: "{{.Values.agentk8sglue.apiServerUrlReference}}"
@@ -50,9 +56,9 @@ spec:
           - name: K8S_GLUE_QUEUE
             value: "{{.Values.agentk8sglue.queue}}"
           - name: K8S_GLUE_EXTRA_ARGS
-            value: "--namespace {{ .Release.Namespace }} --template-yaml /root/template/template.yaml"
+            value: "--namespace {{ include "agentk8sglue.defaultNamespace" . }} --template-yaml /root/template/template.yaml"
           - name: K8S_DEFAULT_NAMESPACE
-            value: "{{ .Release.Namespace }}"
+            value: "{{ include "agentk8sglue.defaultNamespace" . }}"
           - name: CLEARML_API_ACCESS_KEY
             valueFrom:
               secretKeyRef:
@@ -83,18 +89,17 @@ spec:
           {{ toYaml .Values.agentk8sglue.extraEnvs | nindent 10 }}
           {{- end }}
       volumes:
-        - name: {{ include "agentk8sglue.referenceName" . }}-k8sagent-pod-template
-          configMap: 
-            name: {{ include "agentk8sglue.referenceName" . }}-k8sagent-pod-template
-        {{- if or .Values.clearml.clearmlConfig .Values.clearml.existingClearmlConfigSecret }}
-        - name: k8sagent-clearml-conf-volume
-          secret:
-            {{- if .Values.clearml.existingClearmlConfigSecret }}
-            secretName: {{ .Values.clearml.existingClearmlConfigSecret }}
-            {{- else }}
-            secretName: {{ include "agentk8sglue.referenceName" . }}-clearml-agent-conf
-            {{- end }}
-            items:
-            - key: clearml.conf
-              path: clearml.conf
-        {{ end }}
+        {{- include "agentk8sglue.volumes" . | nindent 8 }}
+        
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}

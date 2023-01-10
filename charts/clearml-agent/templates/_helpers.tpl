@@ -66,9 +66,16 @@ app.kubernetes.io/instance: {{ include "agentk8sglue.referenceName" . }}
 {{- end }}
 
 {{/*
+Worker namespace (agentk8sglue)
+*/}}
+{{- define "agentk8sglue.defaultNamespace" -}}
+{{- default .Release.Namespace .Values.agentk8sglue.defaultNamespace }}
+{{- end }}
+
+{{/*
 Create the name of the service account to use
 */}}
-{{- define "clearml.serviceAccountName" -}}
+{{- define "agentk8sglue.serviceAccountName" -}}
 {{- if .Values.serviceAccount.create }}
 {{- default (include "clearml.fullname" .) .Values.serviceAccount.name }}
 {{- else }}
@@ -83,4 +90,25 @@ Create secret to access docker registry
 {{- with .Values.imageCredentials }}
 {{- printf "{\"auths\":{\"%s\":{\"username\":\"%s\",\"password\":\"%s\",\"email\":\"%s\",\"auth\":\"%s\"}}}" .registry .username .password .email (printf "%s:%s" .username .password | b64enc) | b64enc }}
 {{- end }}
+{{- end }}
+
+{{- define "agentk8sglue.volumes" -}}
+{{- if .Values.extraVolumes }}
+{{ toYaml .Values.extraVolumes }}
+{{- end }}
+- name: {{ include "agentk8sglue.referenceName" . }}-k8sagent-pod-template
+  configMap: 
+    name: {{ include "agentk8sglue.referenceName" . }}-k8sagent-pod-template
+{{- if or .Values.clearml.clearmlConfig .Values.clearml.existingClearmlConfigSecret }}
+- name: k8sagent-clearml-conf-volume
+  secret:
+    {{- if .Values.clearml.existingClearmlConfigSecret }}
+    secretName: {{ .Values.clearml.existingClearmlConfigSecret }}
+    {{- else }}
+    secretName: {{ include "agentk8sglue.referenceName" . }}-clearml-agent-conf
+    {{- end }}
+    items:
+    - key: clearml.conf
+      path: clearml.conf
+{{ end }}
 {{- end }}

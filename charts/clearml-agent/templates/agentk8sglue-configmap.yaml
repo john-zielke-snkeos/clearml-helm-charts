@@ -6,7 +6,7 @@ data:
   template.yaml: |
     apiVersion: v1
     metadata:
-      namespace: {{ .Release.Namespace }}
+      namespace: {{ include "agentk8sglue.defaultNamespace" . }}
     spec:
       {{- if .Values.imageCredentials.enabled }}
       imagePullSecrets:
@@ -26,6 +26,7 @@ data:
           {{- toYaml .Values.agentk8sglue.podTemplate.resources | nindent 10 }}
         ports:
         - containerPort: 10022
+        - containerPort: 5678
         {{- with .Values.agentk8sglue.podTemplate.volumeMounts }}
         volumeMounts:
         {{- toYaml . | nindent 10 }}
