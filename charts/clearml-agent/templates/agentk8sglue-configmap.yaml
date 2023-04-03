@@ -8,6 +8,9 @@ data:
     metadata:
       namespace: {{ include "agentk8sglue.defaultNamespace" . }}
     spec:
+      {{- if .Values.agentk8sglue.podTemplate.runtimeClassName }}
+      runtimeClassName: {{ .Values.agentk8sglue.podTemplate.runtimeClassName }}
+      {{- end }}
       {{- if .Values.imageCredentials.enabled }}
       imagePullSecrets:
       {{- if .Values.imageCredentials.existingSecret }}
@@ -16,7 +19,7 @@ data:
       - name: {{ include "agentk8sglue.referenceName" . }}-clearml-agent-registry-key
       {{- end }}
       {{- end }}
-      serviceAccountName: {{ .Values.agentk8sglue.serviceAccountName }}
+      serviceAccountName: {{ include "agentk8sglue.jobServiceAccountName" . }}
       {{- with .Values.agentk8sglue.podTemplate.volumes }}
       volumes:
       {{- toYaml . | nindent 8 }}
@@ -29,6 +32,10 @@ data:
         - containerPort: 5678
         {{- with .Values.agentk8sglue.podTemplate.volumeMounts }}
         volumeMounts:
+        {{- toYaml . | nindent 10 }}
+        {{- end }}
+        {{- with .Values.agentk8sglue.podTemplate.securityContext }}
+        securityContext:
         {{- toYaml . | nindent 10 }}
         {{- end }}
         env:

@@ -2,18 +2,18 @@ apiVersion: v2
 name: clearml-agent
 description: MLOps platform
 type: application
-version: "2.0.2"
+version: "0.0.7"
 appVersion: "1.24"
 kubeVersion: ">= 1.19.0-0 < 1.26.0-0"
 home: https://clear.ml
 icon: https://raw.githubusercontent.com/allegroai/clearml/master/docs/clearml-logo.svg
 sources:
-  - https://github.com/allegroai/clearml-helm-charts
-  - https://github.com/allegroai/clearml
+- https://github.com/allegroai/clearml-helm-charts
+- https://github.com/allegroai/clearml
 maintainers:
-  - name: valeriano-manassero
-    url: https://github.com/valeriano-manassero
+- name: valeriano-manassero
+  url: https://github.com/valeriano-manassero
 keywords:
-  - clearml
-  - "machine learning"
-  - mlops
+- clearml
+- "machine learning"
+- mlops

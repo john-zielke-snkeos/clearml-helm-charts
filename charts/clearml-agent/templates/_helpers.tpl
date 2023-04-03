@@ -76,11 +76,29 @@ Worker namespace (agentk8sglue)
 Create the name of the service account to use
 */}}
 {{- define "agentk8sglue.serviceAccountName" -}}
+{{/* Does not support creation
+
 {{- if .Values.serviceAccount.create }}
 {{- default (include "clearml.fullname" .) .Values.serviceAccount.name }}
 {{- else }}
 {{- default "default" .Values.serviceAccount.name }}
 {{- end }}
+*/}}
+{{- default "default" .Values.serviceAccount.name }}
+{{- end }}
+
+{{/*
+Create the name of the service account to use
+*/}}
+{{- define "agentk8sglue.jobServiceAccountName" -}}
+{{/* Does not support creation
+{{- if .Values.agentk8sglue.serviceAccount.create }}
+{{- default (include "clearml.fullname" .) .Values.agentk8sglue.serviceAccount.name }}
+{{- else }}
+{{- .Values.agentk8sglue.serviceAccount.name | default .Values.serviceAccount.name | default "default" }}
+{{- end }}
+*/}}
+{{- .Values.agentk8sglue.serviceAccount.name | default .Values.serviceAccount.name | default "default" }}
 {{- end }}
 
 {{/*
