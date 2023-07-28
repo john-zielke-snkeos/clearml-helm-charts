@@ -54,7 +54,7 @@ app.kubernetes.io/instance: {{ .Release.Name }}
 Reference Name (agentk8sglue)
 */}}
 {{- define "agentk8sglue.referenceName" -}}
-{{- include "clearml.fullname" . }}-agentk8sglue
+{{- include "clearml.fullname" . }}-k8sglue
 {{- end }}
 
 {{/*
@@ -114,9 +114,9 @@ Create secret to access docker registry
 {{- if .Values.extraVolumes }}
 {{ toYaml .Values.extraVolumes }}
 {{- end }}
-- name: {{ include "agentk8sglue.referenceName" . }}-k8sagent-pod-template
+- name: {{ include "agentk8sglue.referenceName" . }}-pod-template
   configMap: 
-    name: {{ include "agentk8sglue.referenceName" . }}-k8sagent-pod-template
+    name: {{ include "agentk8sglue.referenceName" . }}-pod-template
 {{- if or .Values.clearml.clearmlConfig .Values.clearml.existingClearmlConfigSecret }}
 - name: k8sagent-clearml-conf-volume
   secret:

@@ -33,7 +33,7 @@ spec:
         imagePullPolicy: IfNotPresent
         command: ["/bin/bash", "-c", "bash /scripts/startup.sh; export PATH=$PATH:$HOME/bin; source /root/.bashrc && /root/entrypoint.sh"]
         volumeMounts:
-          - name: {{ include "agentk8sglue.referenceName" . }}-k8sagent-pod-template
+          - name: {{ include "agentk8sglue.referenceName" . }}-pod-template
             mountPath: /root/template
           {{- if or .Values.clearml.clearmlConfig .Values.clearml.existingClearmlConfigSecret }}
           - name: k8sagent-clearml-conf-volume
